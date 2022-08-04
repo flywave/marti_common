@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(diagnostic_msgs REQUIRED)
+find_package(diagnostic_updater REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(gps_msgs REQUIRED)
@@ -69,7 +70,6 @@ target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     USE_NEW_TF2_TOMSG=${USE_NEW_TF2_TOMSG}
 )
-target_compile_definitions(${PROJECT_NAME} PUBLIC "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H")
 target_link_libraries(${PROJECT_NAME}
   Boost::boost
   Boost::filesystem
@@ -84,6 +84,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 ament_target_dependencies(${PROJECT_NAME}
   diagnostic_msgs
+  diagnostic_updater
   geographic_msgs
   geometry_msgs
   gps_msgs
@@ -94,6 +95,7 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2
   tf2_geometry_msgs
   tf2_ros
+  rclcpp_components
 )
 
 add_library(${PROJECT_NAME}_nodes SHARED
@@ -134,6 +136,9 @@ target_include_directories(lat_lon_tf_echo
   ${PROJ_INCLUDE_DIRS}
 )
 target_link_libraries(lat_lon_tf_echo ${PROJECT_NAME})
+ament_target_dependencies(lat_lon_tf_echo
+  tf2_geometry_msgs
+)
 
 # TODO pjr Convert unit tests
 # if(BUILD_TESTING)

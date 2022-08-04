@@ -27,6 +27,7 @@
 //
 // *****************************************************************************
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <swri_transform_util/utm_transformer.h>
 
 #include <boost/make_shared.hpp>

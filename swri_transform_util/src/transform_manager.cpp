@@ -27,6 +27,7 @@
 //
 // *****************************************************************************
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <swri_transform_util/transform_manager.h>
 
 #include <vector>
@@ -34,8 +35,6 @@
 #include <swri_transform_util/frames.h>
 #include <swri_transform_util/utm_transformer.h>
 #include <swri_transform_util/wgs84_transformer.h>
-
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace swri_transform_util
 {

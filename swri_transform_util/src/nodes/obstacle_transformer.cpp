@@ -18,6 +18,7 @@
 #include <swri_roscpp/subscriber.h>
 
 #include <swri_transform_util/transform_manager.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace swri_transform_util
 {

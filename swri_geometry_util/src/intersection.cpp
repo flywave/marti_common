@@ -32,10 +32,12 @@
 #include <swri_geometry_util/intersection.h>
 
 #define HAVE_INT64_T_64  # Prevents conflict with OpenCV typedef of int64
+#include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateArraySequence.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/Polygon.h>
 #include <geos/util/TopologyException.h>
+#include "Coordinate.inl"
 #undef HAVE_INT64_T_64
 
 namespace swri_geometry_util
@@ -208,6 +210,7 @@ namespace swri_geometry_util
     delete b_polygon;
 
     return intersects;
+    return false;
   }
 
   double PolygonIntersectionArea(

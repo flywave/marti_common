@@ -52,6 +52,7 @@ target_link_libraries(${PROJECT_NAME}
   Boost::system
   Eigen3::Eigen
   opencv_core
+  opencv_stitching
 )
 ament_target_dependencies(${PROJECT_NAME}
   camera_calibration_parsers
@@ -68,6 +69,7 @@ ament_target_dependencies(${PROJECT_NAME}
   swri_opencv_util
   swri_roscpp
   tf2
+  rclcpp_components
 )
 
 add_library(${PROJECT_NAME}_nodes SHARED

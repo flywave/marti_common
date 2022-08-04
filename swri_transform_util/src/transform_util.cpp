@@ -26,7 +26,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // *****************************************************************************
-
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <swri_transform_util/transform_util.h>
 
 #include <cmath>
