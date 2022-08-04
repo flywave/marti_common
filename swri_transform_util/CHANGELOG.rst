@@ -2,67 +2,68 @@
 Changelog for package swri_transform_util
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.3.2 (2020-11-24)
-------------------
+2.14.2 (2020-09-09)
+-------------------
+* stamp local_xy_origin message picked from list with now() (`#600 <https://github.com/swri-robotics/marti_common/issues/600>`_)
+* Contributors: Daniel D'Souza, P. J. Reed
 
-3.3.1 (2020-08-19)
-------------------
-* Fix bad conversion when 90 degree yaw specified (`#599 <https://github.com/swri-robotics/marti_common/issues/599>`_)
+2.14.1 (2020-08-18)
+-------------------
+* Fix 90 deg transform (`#598 <https://github.com/swri-robotics/marti_common/issues/598>`_)
 * Contributors: Alex Youngs
 
-3.3.0 (2020-07-15)
-------------------
-* Add python wgs84 transformer ros2 (`#596 <https://github.com/swri-robotics/marti_common/issues/596>`_)
-* Improve object transformer to take into account the pose of the object (`#589 <https://github.com/swri-robotics/marti_common/issues/589>`_) (`#591 <https://github.com/swri-robotics/marti_common/issues/591>`_)
-* Add GitHub Actions for CI (ROS2) (`#586 <https://github.com/swri-robotics/marti_common/issues/586>`_)
-* Contributors: P. J. Reed, Alex Youngs, Matthew Bries
+2.14.0 (2020-07-15)
+-------------------
+* Added python support for wgs84 transforms (`#595 <https://github.com/swri-robotics/marti_common/issues/595>`_)
+* Contributors: Alex Youngs
 
-3.2.1 (2020-06-10)
-------------------
-* ROS Foxy support (`#582 <https://github.com/swri-robotics/marti_common/issues/582>`_)
+2.13.7 (2020-06-26)
+-------------------
+* Improve object transformer to take into account the pose of the object (`#589 <https://github.com/swri-robotics/marti_common/issues/589>`_)
+* Contributors: Matthew Bries
+
+2.13.6 (2020-06-17)
+-------------------
+* Update catkin dependencies (`#588 <https://github.com/swri-robotics/marti_common/issues/588>`_)
 * Contributors: P. J. Reed
 
-3.2.0 (2020-05-13)
-------------------
+2.13.5 (2020-06-17)
+-------------------
 
-3.1.0 (2020-03-30)
-------------------
-* Fix swri_transform_util::TransformManager initialization issues
-* Implement initialize_origin.py in ROS Eloquent
+2.13.4 (2020-06-16)
+-------------------
+* Clean up Boost usage (`#584 <https://github.com/swri-robotics/marti_common/issues/584>`_)
 * Contributors: P. J. Reed
 
-3.0.5 (2020-03-10)
-------------------
-* Also add NavSatFix support to swri_transform_util::LocalXyUtil (`#569 <https://github.com/swri-robotics/marti_common/issues/569>`_)
+2.13.3 (2020-06-12)
+-------------------
+* Use setuptools instead of distutils (`#583 <https://github.com/swri-robotics/marti_common/issues/583>`_)
+* Bump minimum cmake version
+* Contributors: Shane Loretz, P. J. Reed
+
+2.13.2 (2020-06-10)
+-------------------
+* Support ROS Noetic (`#581 <https://github.com/swri-robotics/marti_common/issues/581>`_)
 * Contributors: P. J. Reed
 
-3.0.4 (2020-03-05)
-------------------
-* ROS 2 Eloquent compatibility (`#568 <https://github.com/swri-robotics/marti_common/issues/568>`_)
-* Replace boost::array with std::array (`#567 <https://github.com/swri-robotics/marti_common/issues/567>`_)
-* Fix a crash that happened due to an initialization error (`#566 <https://github.com/swri-robotics/marti_common/issues/566>`_)
-* Fix TransformManager so it works in ROS2 (`#565 <https://github.com/swri-robotics/marti_common/issues/565>`_)
-* Port ObstacleTransformer node to ROS2 (`#559 <https://github.com/swri-robotics/marti_common/issues/559>`_)
-* Remove "nodelets" directory (`#558 <https://github.com/swri-robotics/marti_common/issues/558>`_)
+2.13.1 (2020-05-21)
+-------------------
+
+2.13.0 (2020-05-13)
+-------------------
+* Fix build with Boost >=1.69 (`#574 <https://github.com/swri-robotics/marti_common/issues/574>`_)
+* Contributors: Ben Wolsieffer
+
+2.12.0 (2020-03-25)
+-------------------
+* Suppress auto_ptr warnings (`#570 <https://github.com/swri-robotics/marti_common/issues/570>`_)
 * Contributors: P. J. Reed
 
-3.0.3 (2019-11-11)
-------------------
-
-3.0.2 (2019-11-11)
-------------------
-* Comment out ament_cmake_gtest (`#555 <https://github.com/pjreed/marti_common/issues/555>`_)
-* Contributors: P. J. Reed
-
-3.0.1 (2019-11-11)
-------------------
-* Add missing dependency on Boost::thread to swri_transform_util (`#554 <https://github.com/pjreed/marti_common/issues/554>`_)
-* Contributors: P. J. Reed
-
-3.0.0 (2019-11-08)
-------------------
-* ROS2 Dashing conversion (`#549 <https://github.com/pjreed/marti_common/issues/549>`_)
-* Contributors: P. J. Reed
+2.11.0 (2019-11-13)
+-------------------
+* Add a nodelet that transforms ObstacleArrays
+* Install gps_transform_publisher node (`#551 <https://github.com/pjreed/marti_common/issues/551>`_)
+* Contributors: Matthew, P. J. Reed
 
 2.10.0 (2019-09-04)
 -------------------

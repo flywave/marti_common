@@ -1,6 +1,7 @@
 from setuptools import setup
 
-package_name = 'swri_transform_util'
+from setuptools import setup
+from catkin_pkg.python_setup import generate_distutils_setup
 
 setup(
     name=package_name,

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <package format="3">
   <name>swri_roscpp</name>
-  <version>3.4.1</version>
+  <version>2.15.0</version>
   <description>
 
      swri_roscpp
@@ -10,10 +10,8 @@
   <maintainer email="preed@swri.org">P. J. Reed</maintainer>
   <license>BSD</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>rosidl_default_generators</buildtool_depend>
-
-  <build_depend>rosidl_cmake</build_depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>pkg-config</buildtool_depend>
 
   <depend>boost</depend>
   <depend>diagnostic_updater</depend>
@@ -22,10 +20,12 @@
   <depend>dynamic_reconfigure</depend>
   -->
   <depend>marti_common_msgs</depend>
+  <depend>marti_introspection_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>yaml-cpp</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 

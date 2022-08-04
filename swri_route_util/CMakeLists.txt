@@ -1,44 +1,40 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 project(swri_route_util)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(ament_cmake REQUIRED)
-find_package(marti_common_msgs REQUIRED)
-find_package(marti_nav_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(swri_geometry_util REQUIRED)
-find_package(swri_math_util REQUIRED)
-find_package(swri_roscpp REQUIRED)
-find_package(swri_transform_util REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
+set(RUNTIME_DEPS ${BUILD_DEPS})
+
+find_package(Boost REQUIRED)
+# Workaround for header-only Boost issue in older versions of cmake:
+# https://gitlab.kitware.com/cmake/cmake/-/issues/18643
+add_library(${PROJECT_NAME}_boost INTERFACE IMPORTED)
+set_property(TARGET ${PROJECT_NAME}_boost PROPERTY
+  INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR})
+
+### Catkin ###
+find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPS})
+catkin_package(CATKIN_DEPENDS ${RUNTIME_DEPS}
+  DEPENDS Boost
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME})
+
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ### Build Library ###
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} 
+  src/path_util.cpp
+  src/plan_util.cpp
   src/route.cpp
   src/route_point.cpp
   src/route_speeds.cpp
   src/util.cpp
   src/visualization.cpp
-)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
-ament_target_dependencies(${PROJECT_NAME}
-  ament_cmake
-  marti_common_msgs
-  marti_nav_msgs
-  rclcpp
-  swri_geometry_util
-  swri_math_util
-  swri_roscpp
-  swri_transform_util
-  tf2_geometry_msgs
-  visualization_msgs
+  )
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++0x")
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}_boost
 )
 
 ### Install Libraries and Executables ###

@@ -1,6 +1,6 @@
 <package format="3">
   <name>swri_transform_util</name>
-  <version>3.4.1</version>
+  <version>2.15.0</version>
   <description>
 
      The swri_transform_util package contains utility functions and classes for
@@ -15,15 +15,19 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">python-setuptools</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-setuptools</buildtool_depend>
 
   <depend>boost</depend>
   <depend>cv_bridge</depend>
   <depend>diagnostic_msgs</depend>
+  <depend version_gte="0.6.14">genpy</depend>
   <depend>geographic_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>gps_msgs</depend>
   <depend>libgeos++-dev</depend>
   <depend>marti_nav_msgs</depend>
+  <depend>nodelet</depend>
   <depend>proj</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp</depend>
@@ -37,9 +41,9 @@
   <depend>tf2_ros</depend>
   <depend>yaml-cpp</depend>
 
-  <!-- XML-based launching and tf2_py are only supported in Eloquent -->
-  <exec_depend condition="$ROS_DISTRO != dashing">launch_xml</exec_depend>
-  <exec_depend condition="$ROS_DISTRO != dashing">tf2_py</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-numpy</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-numpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
 
   <exec_depend>python3-numpy</exec_depend>
 

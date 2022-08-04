@@ -85,7 +85,8 @@ namespace swri
         } else {
           min_latency_ = std::min(min_latency_, latency);
           max_latency_ = std::max(max_latency_, latency);
-          total_latency_ = total_latency_ + latency;
+          double latency_weight_ = 0.1;
+          total_latency_.fromSec(latency_weight_*latency.toSec() + (1-latency_weight_)*total_latency_.toSec());
         }
       }
 
@@ -102,11 +103,160 @@ namespace swri
         }
       }
 
-      // Reset the timeout condition to false.
+    last_receive_time_ = now;
+  void checkTimeout(const ros::Time &now)
+  {
+    if (blocking_timeout_) {
+      return;
+    }
+
+    if (in_timeout_ || timeout_ <= ros::Duration(0.0)) {
+      return;
+    }
+
+    if (message_count_ == 0) {
+      return;
+    }
+
+    if (age(now) > timeout_) {
+      in_timeout_ = true;
+      timeout_count_++;
+    }
+  }
+
+
+ public:
+  SubscriberImpl() :
+    unmapped_topic_("N/A"),
+    mapped_topic_("N/A"),
+    message_count_(0),
+    timeout_(-1.0),
+    in_timeout_(false),
+    timeout_count_(0),
+    blocking_timeout_(false)
+  {
+    resetStatistics();
+  }
+
+  virtual ~SubscriberImpl()
+  {
+  }
+
+  const std::string& mappedTopic() const
+  {
+    return mapped_topic_;
+  }
+
+  const std::string& unmappedTopic() const
+  {
+    return unmapped_topic_;
+  }
+
+  int numPublishers() const
+  {
+    return sub_.getNumPublishers();
+  }
+
+  void resetStatistics()
+  {
+    message_count_ = 0;
+    in_timeout_ = false;
+    timeout_count_ = 0;
+  }
+
+  int messageCount() const
+  {
+    return message_count_;
+  }
+
+  ros::Duration age(const ros::Time &now) const
+  {
+    if (message_count_ < 1) {
+      return ros::DURATION_MAX;
+    } else if (last_header_stamp_.isValid()) {
+      return now - last_header_stamp_;
+    } else {
+      // If we've received messages but they don't have valid stamps, we can't
+      // actually determine the age, so just return an empty duration.
+      return ros::Duration(0.0);
+    }
+  }
+
+  ros::Duration meanLatency() const
+  {
+    if (message_count_ < 1) {
+      return ros::DURATION_MAX;
+    } else {
+      return ros::Duration(total_latency_.toSec() / message_count_);
+    }
+  }
+
+  ros::Duration minLatency() const
+  {
+    if (message_count_ < 1) {
+      return ros::DURATION_MAX;
+    } else {
+      return min_latency_;
+    }
+  }
+
+  ros::Duration maxLatency() const
+  {
+    if (message_count_ < 1) {
+      return ros::DURATION_MAX;
+    } else {
+      return max_latency_;
+    }
+  }
+
+  double meanFrequencyHz() const
+  {
+    if (message_count_ < 2) {
+      return 0.0;
+    } else {
+      return 1e9 / meanPeriod().toNSec();
+    }
+  }
+
+  ros::Duration meanPeriod() const
+  {
+    if (message_count_ < 2) {
+      return ros::DURATION_MAX;
+    } else {
+      return ros::Duration(total_periods_.toSec() / (message_count_ - 1));
+    }
+  }
+
+  ros::Duration minPeriod() const
+  {
+    if (message_count_ < 2) {
+      return ros::DURATION_MAX;
+    } else {
+      return min_period_;
+    }
+  }
+
+  ros::Duration maxPeriod() const
+  {
+    if (message_count_ < 2) {
+      return ros::DURATION_MAX;
+    } else {
+      return max_period_;
+    }
+  }
+
+  void setTimeout(const ros::Duration &time_out)
+  {
+    timeout_ = time_out;
+    in_timeout_ = false;
+    timeout_count_ = 0;
+  }
+
+  bool blockTimeouts(bool block) {
+    if (block) {
       in_timeout_ = false;
 
       last_receive_time_ = now;
-      last_header_stamp_ = stamp;
     }
 
     void checkTimeout(const rclcpp::Time &now)

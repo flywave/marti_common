@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 project(swri_opencv_util)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -11,6 +11,15 @@ find_package(swri_math_util REQUIRED)
 find_package(OpenCV REQUIRED core imgproc highgui)
 
 find_package(Boost REQUIRED COMPONENTS serialization thread) 
+
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS cv_bridge swri_math_util
+  DEPENDS Boost
+)
+
+include_directories(include ${catkin_INCLUDE_DIRS})
   
 add_library(${PROJECT_NAME} SHARED
   src/blend.cpp
@@ -18,26 +27,13 @@ add_library(${PROJECT_NAME} SHARED
   src/model_fit.cpp
   src/show.cpp
   src/convert.cpp)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
 target_link_libraries(${PROJECT_NAME}
-  Boost::boost
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBS}
   Boost::serialization
   Boost::thread
-  opencv_core
-  opencv_imgproc
-  opencv_highgui
 )
 target_compile_definitions(${PROJECT_NAME} PUBLIC "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H")
-set_property(TARGET ${PROJECT_NAME}
-  PROPERTY POSITION_INDEPENDENT_CODE ON)
-ament_target_dependencies(${PROJECT_NAME}
-  cv_bridge
-  swri_math_util
-)
 
 install(DIRECTORY include/
   DESTINATION include

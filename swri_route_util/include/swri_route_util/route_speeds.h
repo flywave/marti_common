@@ -29,11 +29,10 @@
 #ifndef SWRI_ROUTE_UTIL_ROUTE_SPEEDS_H_
 #define SWRI_ROUTE_UTIL_ROUTE_SPEEDS_H_
 
-#include <rclcpp/rclcpp.hpp>
-#include <marti_common_msgs/msg/key_value_array.hpp>
-#include <marti_nav_msgs/msg/obstacle_array.hpp>
-#include <marti_nav_msgs/msg/route_speed_array.hpp>
-#include <marti_nav_msgs/msg/tracked_object_array.hpp>
+#include <marti_common_msgs/KeyValueArray.h>
+#include <marti_nav_msgs/ObstacleArray.h>
+#include <marti_nav_msgs/TrackedObjectArray.h>
+#include <marti_nav_msgs/RouteSpeedArray.h>
 #include <swri_math_util/interpolation_1d.h>
 #include <swri_route_util/route.h>
 #include <swri_transform_util/transform.h>
@@ -133,6 +132,11 @@ void generateObstacleData(
   std::vector<ObstacleData>& obstacle_data,
   const swri_transform_util::Transform& g_route_from_obs,
   const marti_nav_msgs::msg::TrackedObjectArray& obstacles_msg);
+
+void generateObstacleData(
+  std::vector<ObstacleData> &obstacle_data,
+  const swri_transform_util::Transform g_route_from_obs,
+  const marti_nav_msgs::TrackedObjectArray &obstacles_msg);
 
 void speedsForObstacles(
     marti_nav_msgs::msg::RouteSpeedArray &speeds,

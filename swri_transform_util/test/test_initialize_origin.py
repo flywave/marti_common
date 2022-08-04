@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2017, Southwest Research Institute (SwRI)
@@ -107,7 +107,7 @@ class TestInitializeOrigin(unittest.TestCase):
         if self.test_stamp:
             self.assertEqual(msg.header.stamp, msg_stamp)
         else:
-            self.assertEqual(msg.header.stamp, rospy.Time(0))
+            self.assertNotEqual(msg.header.stamp, rospy.Time(0))
         self.assertAlmostEqual(longitude, swri['longitude'])
         self.assertAlmostEqual(latitude, swri['latitude'])
         self.assertAlmostEqual(altitude, swri['altitude'])

@@ -1,7 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 project(swri_transform_util)
 
-set(CMAKE_CXX_STANDARD 14)
+find_package(catkin REQUIRED COMPONENTS
+  diagnostic_msgs
+  geographic_msgs
+  geometry_msgs
+  gps_common
+  marti_nav_msgs
+  nodelet
+  roscpp
+  rospy
+  swri_math_util
+  swri_nodelet
+  swri_roscpp
+  swri_yaml_util
+  tf
+  topic_tools
+)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -19,21 +34,21 @@ find_package(swri_roscpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 
-# tf2_geometry_msgs 0.12.1 broke API compatibility, so check which version
-# we need to use
-find_package(tf2_geometry_msgs REQUIRED)
-if("${tf2_geometry_msgs_VERSION}" VERSION_GREATER "0.12.0")
-  set(USE_NEW_TF2_TOMSG 1)
-else()
-  set(USE_NEW_TF2_TOMSG 0)
-endif()
+find_package(OpenCV  REQUIRED calib3d core highgui imgproc video)
+find_package(Boost REQUIRED COMPONENTS filesystem serialization thread)
 
-find_package(yaml-cpp REQUIRED)
-find_package(OpenCV REQUIRED calib3d core highgui imgproc video)
-find_package(Boost REQUIRED filesystem thread)
-
+# First try pkg-config. Should always work for PROJ >= 8. Should work with older
+# versions if they were installed with autotools
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PROJ proj)
+
+# Next, try CMake, which should work if PROJ was installed with CMake
+if(NOT "${PROJ_FOUND}")
+  unset(PROJ_FOUND CACHE)
+  find_package(PROJ)
+endif()
+
+# Lastly, try to find the library directly, for backwards compatibility
 if(NOT "${PROJ_FOUND}")
   set(PROJ_INCLUDE_DIRS /usr/include)
   set(PROJ_LIBRARY_DIRS /usr/lib)
@@ -42,7 +57,34 @@ if(NOT "${PROJ_FOUND}")
   )
 endif()
 
-add_library(${PROJECT_NAME} SHARED
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS
+    diagnostic_msgs
+    geographic_msgs
+    geometry_msgs
+    gps_common
+    marti_nav_msgs
+    nodelet
+    roscpp
+    rospy
+    swri_math_util
+    swri_nodelet
+    swri_roscpp
+    swri_yaml_util
+    tf
+    topic_tools
+  DEPENDS Boost PROJ
+)
+
+include_directories(include)
+include_directories(SYSTEM
+  ${catkin_INCLUDE_DIRS} 
+  ${PROJ_INCLUDE_DIRS}
+)
+
+add_library(${PROJECT_NAME}
   src/georeference.cpp
   src/local_xy_util.cpp
   src/utm_util.cpp
@@ -53,130 +95,71 @@ add_library(${PROJECT_NAME} SHARED
   src/tf2_util.cpp
   src/utm_transformer.cpp
   src/wgs84_transformer.cpp)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-target_include_directories(${PROJECT_NAME}
-  SYSTEM
-  INTERFACE
-  ${PROJ_INCLUDE_DIRS}
-)
-set_property(TARGET ${PROJECT_NAME}
-  PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(${PROJECT_NAME}
-  PRIVATE
-    USE_NEW_TF2_TOMSG=${USE_NEW_TF2_TOMSG}
-)
-target_compile_definitions(${PROJECT_NAME} PUBLIC "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H")
 target_link_libraries(${PROJECT_NAME}
-  Boost::boost
+  ${catkin_LIBRARIES}
+  ${PROJ_LIBRARIES}
   Boost::filesystem
+  Boost::serialization
   Boost::thread
   opencv_calib3d
   opencv_core
   opencv_highgui
   opencv_imgproc
   opencv_video
-  ${PROJ_LIBRARIES}
-  yaml-cpp
 )
-ament_target_dependencies(${PROJECT_NAME}
-  diagnostic_msgs
-  geographic_msgs
-  geometry_msgs
-  gps_msgs
-  rclcpp
-  sensor_msgs
-  swri_math_util
-  swri_roscpp
-  tf2
-  tf2_geometry_msgs
-  tf2_ros
-)
+target_compile_definitions(${PROJECT_NAME} PUBLIC "-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H")
 
-add_library(${PROJECT_NAME}_nodes SHARED
-  src/nodes/dynamic_transform_publisher.cpp
-  src/nodes/gps_transform_publisher.cpp
-  src/nodes/obstacle_transformer.cpp
-)
-target_include_directories(${PROJECT_NAME}_nodes
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-target_include_directories(${PROJECT_NAME}_nodes
-  SYSTEM
-  INTERFACE
-  ${PROJ_INCLUDE_DIRS}
-)
-target_compile_definitions(${PROJECT_NAME}_nodes
-  PRIVATE "COMPOSITION_BUILDING_DLL")
-rclcpp_components_register_nodes(${PROJECT_NAME}_nodes "swri_transform_util::DynamicTransformPublisher")
-rclcpp_components_register_nodes(${PROJECT_NAME}_nodes "swri_transform_util::GpsTransformPublisher")
-rclcpp_components_register_nodes(${PROJECT_NAME}_nodes "swri_transform_util::ObstacleTransformer")
-target_link_libraries(${PROJECT_NAME}_nodes ${PROJECT_NAME})
-ament_target_dependencies(${PROJECT_NAME}_nodes
-  marti_nav_msgs
-  rcl_interfaces
-)
+add_library(${PROJECT_NAME}_nodelets
+  src/nodelets/dynamic_publisher.cpp
+  src/nodelets/gps_transform_publisher.cpp
+  src/nodelets/object_transformer.cpp)
+target_link_libraries(${PROJECT_NAME}_nodelets ${catkin_LIBRARIES} ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_nodelets PROPERTIES COMPILE_FLAGS "-std=c++11 -D__STDC_FORMAT_MACROS")
 
 add_executable(lat_lon_tf_echo src/nodes/lat_lon_tf_echo.cpp)
-target_include_directories(lat_lon_tf_echo
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-target_include_directories(lat_lon_tf_echo
-  SYSTEM
-  INTERFACE
-  ${PROJ_INCLUDE_DIRS}
-)
 target_link_libraries(lat_lon_tf_echo ${PROJECT_NAME})
 
-# TODO pjr Convert unit tests
-# if(BUILD_TESTING)
-#   find_package(ament_cmake_gtest REQUIRED)
-# 
-#  add_rostest_gtest(test_local_xy_util launch/local_xy_util.test test/test_local_xy_util.cpp)
-#  target_link_libraries(test_local_xy_util ${PROJECT_NAME})
-#
-#  add_rostest_gtest(test_utm_util launch/utm_util.test test/test_utm_util.cpp)
-#  target_link_libraries(test_utm_util ${PROJECT_NAME})
-#
-#  add_rostest_gtest(test_transform_manager launch/transform_manager.test test/test_transform_manager.cpp)
-#  target_link_libraries(test_transform_manager ${PROJECT_NAME})
-#
-#  add_rostest_gtest(test_georeference launch/georeference.test test/test_georeference.cpp)
-#  target_link_libraries(test_georeference ${PROJECT_NAME})
-#
-#  add_rostest_gtest(test_transform_util launch/transform_util.test test/test_transform_util.cpp)
-#  target_link_libraries(test_transform_util ${PROJECT_NAME})
-#
-#  add_rostest(test/initialize_invalid_gps.test)
-#  add_rostest(test/initialize_invalid_navsat.test)
-#  add_rostest(test/initialize_origin_auto_custom.test)
-#  add_rostest(test/initialize_origin_auto_gps.test)
-#  add_rostest(test/initialize_origin_auto_navsat.test)
-#  add_rostest(test/initialize_origin_manual.test)
-# endif()
+swri_nodelet_add_node(gps_transform_publisher ${PROJECT_NAME} GpsTransformPublisher)
+target_link_libraries(gps_transform_publisher ${PROJECT_NAME}_nodelets ${catkin_LIBRARIES})
 
-install(DIRECTORY include/
-  DESTINATION include
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+
+  add_rostest_gtest(test_local_xy_util launch/local_xy_util.test test/test_local_xy_util.cpp)
+  target_link_libraries(test_local_xy_util ${PROJECT_NAME})
+
+  add_rostest_gtest(test_utm_util launch/utm_util.test test/test_utm_util.cpp)
+  target_link_libraries(test_utm_util ${PROJECT_NAME})
+
+  add_rostest_gtest(test_transform_manager launch/transform_manager.test test/test_transform_manager.cpp)
+  target_link_libraries(test_transform_manager ${PROJECT_NAME})
+
+  add_rostest_gtest(test_georeference launch/georeference.test test/test_georeference.cpp)
+  target_link_libraries(test_georeference ${PROJECT_NAME})
+
+  add_rostest_gtest(test_transform_util launch/transform_util.test test/test_transform_util.cpp)
+  target_link_libraries(test_transform_util ${PROJECT_NAME})
+
+  add_rostest(test/initialize_invalid_gps.test)
+  add_rostest(test/initialize_invalid_navsat.test)
+  add_rostest(test/initialize_origin_auto_custom.test)
+  add_rostest(test/initialize_origin_auto_gps.test)
+  add_rostest(test/initialize_origin_auto_navsat.test)
+  add_rostest(test/initialize_origin_manual.test)
+endif()
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
 )
 
-install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(TARGETS
-  ${PROJECT_NAME}
-  ${PROJECT_NAME}_nodes
-  lat_lon_tf_echo
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
+install(TARGETS ${PROJECT_NAME}
+    ${PROJECT_NAME}_nodelets
+    lat_lon_tf_echo
+    gps_transform_publisher
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
 ### Install Python Nodes/Scripts ###

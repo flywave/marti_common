@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 project(swri_math_util)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -7,28 +7,26 @@ find_package(ament_cmake REQUIRED)
 
 find_package(rclcpp REQUIRED)
 
-# The Boost Random library headers and namespaces changed between version
-# 1.46 and 1.47
-find_package(Boost COMPONENTS random)
+find_package(Boost REQUIRED COMPONENTS random thread)
 
-add_library(${PROJECT_NAME} SHARED
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp
+  DEPENDS Boost
+)
+
+include_directories(include ${catkin_INCLUDE_DIRS})
+  
+add_library(${PROJECT_NAME}
   src/math_util.cpp
   src/trig_util.cpp
   src/random.cpp
   src/interpolation_1d.cpp)
-set_property(TARGET ${PROJECT_NAME}
-  PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
 target_link_libraries(${PROJECT_NAME}
-  Boost::boost
+  ${catkin_LIBRARIES}
   Boost::random
-)
-ament_target_dependencies(${PROJECT_NAME}
-  rclcpp
+  Boost::thread
 )
 
 if(BUILD_TESTING)

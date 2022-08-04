@@ -1,6 +1,6 @@
 <package format="3">
   <name>swri_image_util</name>
-  <version>3.4.1</version>
+  <version>2.15.0</version>
   <description>
 
      swri_image_util
@@ -14,7 +14,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
 
-  <depend>ament_index_cpp</depend>
   <depend>boost</depend>
   <depend>camera_calibration_parsers</depend>
   <depend>cv_bridge</depend>

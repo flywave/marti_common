@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 
 project(swri_geometry_util)
 
@@ -18,28 +18,35 @@ find_package(OpenCV REQUIRED core)
 
 find_package(Eigen3 REQUIRED)
 
-add_library(${PROJECT_NAME} SHARED
+
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS
+    roscpp
+    tf
+  DEPENDS
+    OpenCV
+)
+
+include_directories(include)
+include_directories(SYSTEM
+  ${catkin_INCLUDE_DIRS}
+  ${GEOS_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+)
+
+add_library(${PROJECT_NAME}
   src/cubic_spline.cpp
   src/geometry_util.cpp
   src/intersection.cpp
   src/polygon.cpp
 )
 target_compile_definitions(${PROJECT_NAME} PUBLIC "-DUSE_UNSTABLE_GEOS_CPP_API")
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${GEOS_INCLUDE_DIRS}
-)
 target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
   ${GEOS_LIBRARIES}
-  Eigen3::Eigen
   opencv_core
-)
-ament_target_dependencies(${PROJECT_NAME}
-  "cv_bridge"
-  "rclcpp"
-  "tf2"
 )
 
 if(BUILD_TESTING)

@@ -99,7 +99,12 @@ class TimerImpl
     resetStatistics();
   }
 
-  rclcpp::Duration desiredPeriod() const
+  virtual ~TimerImpl()
+  {
+
+  }
+
+  ros::Duration desiredPeriod() const
   {
     return desired_period_;
   }

@@ -29,7 +29,13 @@
 #ifndef SWRI_ROSCPP_TOPIC_SERVICE_CLIENT_H_
 #define SWRI_ROSCPP_TOPIC_SERVICE_CLIENT_H_
 
-#include <chrono>
+#include <ros/node_handle.h>
+#include <ros/this_node.h>
+
+#include <boost/thread/mutex.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include <map>
 #include <mutex>
 
@@ -40,13 +46,14 @@ using namespace std::chrono_literals;
 namespace swri
 {
 template<class MReq, class MRes>
-class TopicServiceClientRaw
+class TopicServiceClientImpl
 {
-private:
-  std::mutex request_lock_;
-  std::shared_ptr<rclcpp::Subscription<MRes> > response_sub_;
-  std::shared_ptr<rclcpp::Publisher<MReq> > request_pub_;
-  std::shared_ptr<MRes> response_;
+public:
+  typedef
+  boost::mutex request_lock_;
+  ros::Subscriber response_sub_;
+  ros::Publisher request_pub_;
+  boost::shared_ptr<MRes> response_;
 
   std::chrono::nanoseconds timeout_;
   std::string name_;
@@ -55,12 +62,7 @@ private:
 
   int sequence_;
 
-public:
-  TopicServiceClientRaw() :
-    timeout_(std::chrono::seconds(4)),
-    sequence_(0),
-    node_(nullptr),
-    internal_spin_(true)
+  TopicServiceClientImpl() : sequence_(0), timeout_(ros::Duration(4.0))
   {
 
   }
@@ -89,56 +91,8 @@ public:
     }
     service_name_ = service;
 
-    request_pub_ = node_->create_publisher<MReq>(service + "/request", 10);
-    response_sub_ = node_->create_subscription<MRes>(service + "/response",
-        10, std::bind(&TopicServiceClientRaw<MReq, MRes>::response_callback, this, std::placeholders::_1));
-  }
-
-  bool wait_for_service_nanoseconds(std::chrono::nanoseconds timeout)
-  {
-    // Inspired by process in ClientBase::wait_for_service_nanoseconds in client.cpp
-    auto start = std::chrono::steady_clock::now();
-
-    if (timeout == std::chrono::nanoseconds(0))
-    {
-      return false;
-    }
-
-    std::chrono::nanoseconds time_to_wait = std::chrono::nanoseconds::max();
-    if (timeout > std::chrono::nanoseconds(0))
-    {
-      time_to_wait = timeout - (std::chrono::steady_clock::now() - start);
-    }
-
-    do
-    {
-      if (!rclcpp::ok())
-      {
-        return false;
-      }
-
-      if ((request_pub_->get_subscription_count() > 0) &&
-        (response_sub_->get_publisher_count() > 0))
-      {
-        return true;
-      }
-
-      if (timeout > std::chrono::nanoseconds(0))
-      {
-        time_to_wait = timeout - (std::chrono::steady_clock::now() - start);
-        rclcpp::sleep_for(std::chrono::milliseconds(2));
-        if (internal_spin_)
-        {
-          rclcpp::spin_some(node_);
-        }
-      }
-    } while (time_to_wait > std::chrono::nanoseconds(0));
-
-    RCLCPP_ERROR(
-      node_->get_logger(),
-      "Topic service timeout exceeded");
-
-    return false;
+    request_pub_ = nh.advertise<MReq>(rservice + "/request", 10);
+    response_sub_ = nh.subscribe(rservice + "/response", 10, &TopicServiceClientImpl<MReq, MRes>::response_callback, this);
   }
 
   bool call(MReq& request, MRes& response)
@@ -198,20 +152,6 @@ public:
     }
   }
 
-  std::string getService()
-  {
-    return service_name_;
-  }
-
-  bool exists()
-  {
-    return (request_pub_->get_subscription_count() > 0) && (response_sub_->get_publisher_count() > 0);
-  }
-
-  // The service server can output a console log message when the
-  // service is called if desired.
-  void setLogCalls(bool enable);
-  bool logCalls() const;
 private:
 
   void response_callback(const std::shared_ptr<MRes> message)
@@ -234,29 +174,39 @@ private:
 
     response_ = message;
   }
-
-  rclcpp::Node::SharedPtr node_;
-};  // class TopicServiceClientRaw
+};  // class TopicServiceClientImpl
 
 template<class MReq>
-class TopicServiceClient : public TopicServiceClientRaw<typename MReq:: Request, typename MReq:: Response>
+class TopicServiceClient 
 {
+  boost::shared_ptr<TopicServiceClientImpl<typename MReq:: Request, typename MReq:: Response> > impl_;
+
 public:
-  template<typename RepT = int64_t, typename RatioT = std::nano>
-  bool
-  wait_for_service(
-    std::chrono::duration<RepT, RatioT> timeout = std::chrono::duration<RepT, RatioT>(std::chrono::nanoseconds(1s)))
+
+  void initialize(ros::NodeHandle &nh,
+                const std::string &service,
+                const std::string &client_name = "")
   {
-    return TopicServiceClientRaw<typename MReq::Request, typename MReq::Response>::wait_for_service_nanoseconds(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(timeout));
+    impl_ = boost::shared_ptr<TopicServiceClientImpl<typename MReq:: Request, typename MReq:: Response> >(
+      new TopicServiceClientImpl<typename MReq:: Request, typename MReq:: Response>());
+
+    impl_->initialize(nh, service, client_name);
+  }
+
+  std::string getService()
+  {
+    return impl_->service_name_;
+  }
+
+  bool exists()
+  {
+    return impl_->request_pub_.getNumSubscribers() > 0 && impl_->response_sub_.getNumPublishers() > 0;
   }
 
   bool call(MReq& req)
   {
-    return TopicServiceClientRaw<typename MReq:: Request, typename MReq:: Response>::call(
-      req.request, req.response);
+    return impl_->call(req.request, req.response);
   }
-
 };  // class TopicServiceClient
 
 

@@ -44,23 +44,10 @@ import sys
 data = sys.argv
 
 
-# Copying the logic from the rosidl package's
-# string_camel_case_to_lower_case_underscore.cmake file
-def camel_to_snake(camel):
-    # Insert underscores before any upper case letter that is not followed by a
-    # lower case letter
-    snake = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", camel)
-    # Insert an underscore before any upper case letter that is preceded by a
-    # lower case letter or number
-    snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", snake)
-    snake = snake.lower()
-    return snake
-
-
 rf = open(data[1], "rt")
-contents = rf.read()
-lines = contents.split('---')  # split by statement
-# split by brackets
+contents = rf.read();
+lines = contents.split('---')# split by statement
+#split by brackets
 rf.close()
 
 
